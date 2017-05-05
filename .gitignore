@@ -4,5 +4,5 @@
 vendor/**
 
 ## gem
-
+*.gem
 pkg/*
