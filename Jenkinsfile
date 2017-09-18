@@ -3,6 +3,7 @@ def file = "logstash-output-amazon_es-2.0.1.zip"
 
 
 node('chef') {
+    def workspace = pwd()
     
     git url: 'git@github.com:Accedo-Products/infraops-logstash-output-amazon_es.git'
     
@@ -19,7 +20,7 @@ node('chef') {
     }
     
     stage('Build offline package with docker') {
-        sh "docker run -v ${PWD}:/var/build_dir logstash-output"
+        sh "docker run -v $workspace:/var/build_dir logstash-output"
     }
     
     stage('Upload to s3') {
