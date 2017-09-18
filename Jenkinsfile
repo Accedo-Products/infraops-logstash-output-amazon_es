@@ -19,7 +19,7 @@ node('chef') {
     }
     
     stage('Build offline package with docker') {
-        sh "docker run -i -t -v ${PWD}:/var/build_dir logstash-output"
+        sh "docker run -v ${PWD}:/var/build_dir logstash-output"
     }
     
     stage('Upload to s3') {
