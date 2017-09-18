@@ -1,9 +1,6 @@
-def goBase = 'src/github.com/Accedo-Products'
-def goProject = 'infraops-cloudtrail'
-def goProjectDir = "$goBase/$goProject"
-def service = "cloudtrail"
 def region = "us-west-1"
-def cluster_name = "ops"
+def file = "logstash-output-amazon_es-2.0.1.zip"
+
 
 node('chef') {
     
@@ -24,6 +21,10 @@ node('chef') {
     stage('Build offline package with docker') {
         sh "docker run -i -t -v ${PWD}:/var/build_dir logstash-output"
     }
-
     
+    stage('Upload to s3') {
+        withAWS(region: "$region") {
+            s3Upload(file: $file, bucket:'accedo-infra-tools', path:"logstash/$file")
+        }
+    }
 }
