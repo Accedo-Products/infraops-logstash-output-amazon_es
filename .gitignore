@@ -6,3 +6,4 @@ vendor/**
 ## gem
 *.gem
 pkg/*
+*.zip

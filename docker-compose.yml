@@ -8,5 +8,7 @@ services:
   jruby:
     build: .
     volumes:
-     - .:/var/build_dir
+      - .:/var/build_dir
+    dns:
+      - 8.8.8.8
   
