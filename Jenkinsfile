@@ -25,7 +25,7 @@ node('chef') {
     
     stage('Upload to s3') {
         withAWS(region: "$region") {
-            s3Upload(file: $file, bucket:'accedo-infra-tools', path:"logstash/$file")
+            s3Upload(file: "$file", bucket:'accedo-infra-tools', path:"logstash/$file")
         }
     }
 }
