@@ -1,6 +1,7 @@
 require 'manticore'
 require 'cgi'
 require 'aws-sdk-core'
+require 'aws-sigv4'
 require 'uri'
 
 module LogStash; module Outputs; class ElasticSearch; class HttpClient;
@@ -102,14 +103,19 @@ module LogStash; module Outputs; class ElasticSearch; class HttpClient;
       end
 
 
-      key = Seahorse::Client::Http::Request.new(options={:endpoint=>url, :http_method => method.to_s.upcase,
-                                                       :headers => params[:headers],:body => params[:body]})
+      # key = Seahorse::Client::Http::Request.new(options={:endpoint=>url, :http_method => method.to_s.upcase,
+      #                                                 :headers => params[:headers],:body => params[:body]})
 
-      aws_signer = Aws::Signers::V4.new(@credentials, 'es', @region )
+      aws_signer = Aws::Sigv4::Signer.new(credentials_provider: @credentials, service: 'es', region: @region )
+      signature = aws_signer.sign_request(
+        http_method: method.to_s.upcase,
+        url: url,
+        headers: params[:headers],
+        body: params[:body]
+      )
 
-
-      signed_key =  aws_signer.sign(key)
-      params[:headers] =  params[:headers].merge(signed_key.headers)
+      #signed_key =  aws_signer.sign(key)
+      params[:headers] =  params[:headers].merge(signature.headers)
 
 
 
