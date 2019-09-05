@@ -43,23 +43,8 @@ module LogStash; module Outputs; class ElasticSearch; class HttpClient;
 
       credential_config = CredentialConfig.new(aws_access_key_id, aws_secret_access_key, session_token, profile, instance_cred_retries, instance_cred_timeout, @region)
       @credentials = Aws::CredentialProviderChain.new(credential_config).resolve
-
-      if options[:proxy]
-        options[:proxy] = manticore_proxy_hash(options[:proxy])
-      end
       
       @manticore = ::Manticore::Client.new(options)
-    end
-    
-    # Transform the proxy option to a hash. Manticore's support for non-hash
-    # proxy options is broken. This was fixed in https://github.com/cheald/manticore/commit/34a00cee57a56148629ed0a47c329181e7319af5
-    # but this is not yet released
-    def manticore_proxy_hash(proxy_uri)
-      [:scheme, :port, :user, :password, :path].reduce(:host => proxy_uri.host) do |acc,opt|
-        value = proxy_uri.send(opt)
-        acc[opt] = value unless value.nil? || (value.is_a?(String) && value.empty?)
-        acc
-      end
     end
 
     def client
@@ -81,7 +66,6 @@ module LogStash; module Outputs; class ElasticSearch; class HttpClient;
       }
       params[:headers] = params[:headers].clone
 
-
       params[:body] = body if body
 
       if url.user
@@ -102,10 +86,6 @@ module LogStash; module Outputs; class ElasticSearch; class HttpClient;
         url = URI::HTTP.build({:host=>URI(request_uri.to_s).host, :port=>@port.to_s, :path=>path})
       end
 
-
-      # key = Seahorse::Client::Http::Request.new(options={:endpoint=>url, :http_method => method.to_s.upcase,
-      #                                                 :headers => params[:headers],:body => params[:body]})
-
       aws_signer = Aws::Sigv4::Signer.new(credentials_provider: @credentials, service: 'es', region: @region )
       signature = aws_signer.sign_request(
         http_method: method.to_s.upcase,
@@ -114,10 +94,7 @@ module LogStash; module Outputs; class ElasticSearch; class HttpClient;
         body: params[:body]
       )
 
-      #signed_key =  aws_signer.sign(key)
       params[:headers] =  params[:headers].merge(signature.headers)
-
-
 
       resp = @manticore.send(method.downcase, request_uri.to_s, params)
 
